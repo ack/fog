@@ -172,20 +172,19 @@ module Fog
           data = connection.run_instances(image_id, 1, 1, options)
           merge_attributes(data.body['instancesSet'].first)
 
-          if self.tags
-            for key, value in self.tags
-              connection.tags.create(
-                :key          => key,
-                :resource_id  => self.identity,
-                :value        => value
-              )
-            end
-          end
-
+          save_tags
           true
         end
 
-        # TODO: expose tag interface
+        def save_tags
+          for key, value in (self.tags || {})
+            connection.tags.create(
+              :key          => key,
+              :resource_id  => self.identity,
+              :value        => value
+            )
+          end
+        end
         
         def setup(credentials = {})
           requires :public_ip_address, :username
