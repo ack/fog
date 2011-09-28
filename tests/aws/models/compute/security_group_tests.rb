@@ -12,6 +12,10 @@ Shindo.tests("Fog::Compute[:aws] | security_group", ['aws']) do
       @group.description == "   fog group desc   "
     end
 
+    test("id is correct") do
+       @group.id =~ /^sg-/
+    end
+
     @other_group = Fog::Compute[:aws].security_groups.create(:name => 'other group', :description => 'another group')
 
     test("authorize access by another security group") do

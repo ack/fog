@@ -48,6 +48,12 @@ module Fog
               else
                 @security_group[name] = value
               end
+            when 'groupId'
+              if @in_groups
+                @group[name] = value
+              else
+                @security_group[name] = value
+              end
             when 'ipPermissions'
               @in_ip_permissions = false
             when 'ipPermissionsEgress'

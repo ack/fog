@@ -14,10 +14,15 @@ module Fog
         #     * 'return'<~Boolean> - success?
         #
         # {Amazon API Reference}[http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/ApiReference-query-ReleaseAddress.html]
-        def release_address(public_ip)
+        def release_address(public_ip, allocation_id=nil)
+          key, identifier = 'PublicIp', public_ip
+          if allocation_id
+            key, identifier = 'AllocationId', allocation_id
+          end
+          
           request(
             'Action'    => 'ReleaseAddress',
-            'PublicIp'  => public_ip,
+            key         => identifier,
             :idempotent => true,
             :parser     => Fog::Parsers::Compute::AWS::Basic.new
           )
@@ -27,7 +32,7 @@ module Fog
 
       class Mock
 
-        def release_address(public_ip)
+        def release_address(public_ip, allocation_id=nil)
           response = Excon::Response.new
           if (address = self.data[:addresses].delete(public_ip))
             response.status = 200

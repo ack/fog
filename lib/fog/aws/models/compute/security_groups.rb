@@ -22,6 +22,7 @@ module Fog
         #>> AWS.security_groups.new
         #  <Fog::AWS::Compute::SecurityGroup
         #    name=nil,
+        #    id=nil,
         #    description=nil,
         #    ip_permissions=nil,
         #    owner_id=nil
@@ -47,6 +48,7 @@ module Fog
         #    [
         #      <Fog::AWS::Compute::SecurityGroup
         #        name="default",
+        #        id="sg-d50729bc",
         #        description="default group",
         #        ip_permissions=[{"groups"=>[{"groupName"=>"default", "userId"=>"312571045469"}], "fromPort"=>-1, "toPort"=>-1, "ipRanges"=>[], "ipProtocol"=>"icmp"}, {"groups"=>[{"groupName"=>"default", "userId"=>"312571045469"}], "fromPort"=>0, "toPort"=>65535, "ipRanges"=>[], "ipProtocol"=>"tcp"}, {"groups"=>[{"groupName"=>"default", "userId"=>"312571045469"}], "fromPort"=>0, "toPort"=>65535, "ipRanges"=>[], "ipProtocol"=>"udp"}],
         #        owner_id="312571045469"
@@ -82,8 +84,11 @@ module Fog
         #  > 
         #
         
-        def get(group_name)
-          if group_name
+        def get(identifier)
+          group_name, group_id = ((identifier =~ /^sg-/) ? [nil, identifier] : [identifier, nil])
+          if group_id
+            self.class.new(:connection => connection).all('group-id' => group_id).first
+          else
             self.class.new(:connection => connection).all('group-name' => group_name).first
           end
         end

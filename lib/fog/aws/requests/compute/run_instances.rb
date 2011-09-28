@@ -97,6 +97,9 @@ module Fog
           if security_groups = options.delete('SecurityGroup')
             options.merge!(Fog::AWS.indexed_param('SecurityGroup', [*security_groups]))
           end
+          if security_group_ids = options.delete('SecurityGroupId')
+            options.merge!(Fog::AWS.indexed_param('SecurityGroupId', [*security_group_ids]))
+          end
           if options['UserData']
             options['UserData'] = Base64.encode64(options['UserData'])
           end

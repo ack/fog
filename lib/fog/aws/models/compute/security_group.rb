@@ -8,6 +8,9 @@ module Fog
 
         identity  :name,            :aliases => 'groupName'
 
+        ## identity should really be this one
+        attribute :id,              :aliases => 'groupId'
+
         attribute :description,     :aliases => 'groupDescription'
         attribute :ip_permissions,  :aliases => 'ipPermissions'
         attribute :owner_id,        :aliases => 'ownerId'

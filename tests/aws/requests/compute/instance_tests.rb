@@ -122,6 +122,15 @@ Shindo.tests('Fog::Compute[:aws] | instance requests', ['aws']) do
     'requestId'     => String
   }
 
+
+  before do
+    @security_group ||= Fog::Compute[:aws].security_groups.first
+    nil
+  end
+
+  after do
+  end
+
   tests('success') do
 
     @instance_id = nil
@@ -134,6 +143,12 @@ Shindo.tests('Fog::Compute[:aws] | instance requests', ['aws']) do
 
     tests("#run_instances").formats(@run_instances_format) do
       data = Fog::Compute[:aws].run_instances(@windows_ami, 1, 1, 'InstanceType' => 't1.micro', 'KeyName' => key_name).body
+      @instance_id = data['instancesSet'].first['instanceId']
+      data
+    end
+
+    tests("#run_instances('security-group-id' => '#{@security_group.id}')").formats(@run_instances_format) do
+      data = Fog::Compute[:aws].run_instances(@windows_ami, 1, 1, 'InstanceType' => 't1.micro', 'KeyName' => key_name, 'SecurityGroupId' => @security_group.id).body
       @instance_id = data['instancesSet'].first['instanceId']
       data
     end

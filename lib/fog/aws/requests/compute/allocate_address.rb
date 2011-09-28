@@ -7,16 +7,21 @@ module Fog
 
         # Acquire an elastic IP address.
         #
+        # ==== Parameters
+        # * domain<~String> - (optional) set as 'vpc' to allocate EIP for VPC instances.
+        #
         # ==== Returns
         # * response<~Excon::Response>:
         #   * body<~Hash>:
         #     * 'publicIp'<~String> - The acquired address
         #     * 'requestId'<~String> - Id of the request
+        #     * 'allocationId'<~String> - Allocation Id for VPC EIP. NOTE: required to associate and release
         #
         # {Amazon API Reference}[http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/ApiReference-query-AllocateAddress.html]
-        def allocate_address
+        def allocate_address(domain=nil)
           request(
             'Action'  => 'AllocateAddress',
+            'Domain'  => domain,
             :parser   => Fog::Parsers::Compute::AWS::AllocateAddress.new
           )
         end

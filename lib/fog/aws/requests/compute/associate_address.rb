@@ -10,6 +10,7 @@ module Fog
         # ==== Parameters
         # * instance_id<~String> - Id of instance to associate address with
         # * public_ip<~String> - Public ip to assign to instance
+        # * allocation_id<~String> - (optional) Allocation Id (required for VPC instances only)
         #
         # ==== Returns
         # * response<~Excon::Response>:
@@ -18,11 +19,16 @@ module Fog
         #     * 'return'<~Boolean> - success?
         #
         # {Amazon API Reference}[http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/ApiReference-query-AssociateAddress.html]
-        def associate_address(instance_id, public_ip)
+        def associate_address(instance_id, public_ip, allocation_id=nil)
+          key, identifier = 'PublicIp', public_ip
+          if allocation_id
+            key, identifier = 'AllocationId', allocation_id
+          end
+          
           request(
             'Action'      => 'AssociateAddress',
             'InstanceId'  => instance_id,
-            'PublicIp'    => public_ip,
+            key           => identifier,
             :idempotent   => true,
             :parser       => Fog::Parsers::Compute::AWS::Basic.new
           )
@@ -32,7 +38,7 @@ module Fog
 
       class Mock
 
-        def associate_address(instance_id, public_ip)
+        def associate_address(instance_id, public_ip, allocation_id=nil)
           response = Excon::Response.new
           response.status = 200
           instance = self.data[:instances][instance_id]

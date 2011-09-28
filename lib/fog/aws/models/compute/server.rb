@@ -17,6 +17,7 @@ module Fog
         attribute :client_token,          :aliases => 'clientToken'
         attribute :dns_name,              :aliases => 'dnsName'
         attribute :groups
+        attribute :group_ids
         attribute :flavor_id,             :aliases => 'instanceType'
         attribute :image_id,              :aliases => 'imageId'
         attr_accessor :instance_initiated_shutdown_behavior
@@ -152,6 +153,7 @@ module Fog
             'Placement.Tenancy'           => tenancy,
             'RamdiskId'                   => ramdisk_id,
             'SecurityGroup'               => groups,
+            'SecurityGroupId'             => group_ids,
             'SubnetId'                    => subnet_id,
             'UserData'                    => user_data
           }
@@ -160,10 +162,11 @@ module Fog
           # If subnet is defined we are working on a virtual private cloud.
           # subnet & security group cannot co-exist. I wish VPC just ignored
           # the security group parameter instead, it would be much easier!
-          if subnet_id
+          if subnet_id or group_ids
             options.delete('SecurityGroup')
           else
             options.delete('SubnetId')
+            options.delete('SecurityGroupId')
           end
 
           data = connection.run_instances(image_id, 1, 1, options)
@@ -182,6 +185,8 @@ module Fog
           true
         end
 
+        # TODO: expose tag interface
+        
         def setup(credentials = {})
           requires :public_ip_address, :username
           require 'multi_json'
