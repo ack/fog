@@ -160,8 +160,7 @@ module Fog
               'ownerId'             => self.data[:owner_id],
               'privateIpAddress'    => nil,
               'reservationId'       => reservation_id,
-              'stateReason'         => {},
-              'tagSet'              => {}
+              'stateReason'         => {}
             })
           end
           response.body = {

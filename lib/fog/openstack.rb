@@ -79,25 +79,28 @@ module Fog
       @compute_service_name = options[:openstack_compute_service_name]
 
       req_body= {
-        'passwordCredentials'  => {
-          'username' => @openstack_username,
-          'password' => @openstack_api_key
+        'auth' => {
+          'passwordCredentials'  => {
+            'username' => @openstack_username,
+            'password' => @openstack_api_key
+          }
         }
       }
-      req_body['tenantId'] = @openstack_tenant if @openstack_tenant
+      req_body['auth']['tenantName'] = @openstack_tenant if @openstack_tenant
 
       response = connection.request({
         :expects  => [200, 204],
-        :body  => req_body,
+        :headers => {'Content-Type' => 'application/json'},
+        :body  => MultiJson.encode(req_body),
         :host     => uri.host,
-        :method   => 'GET',
+        :method   => 'POST',
         :path     =>  (uri.path and not uri.path.empty?) ? uri.path : 'v2.0'
       })
-      body=response.body
+      body=MultiJson.decode(response.body)
      
-      if body['auth']['serviceCatalog'] and body['auth']['serviceCatalog'][@compute_service_name] and body['auth']['serviceCatalog'][@compute_service_name][0] then
-        mgmt_url = body['auth']['serviceCatalog'][@compute_service_name][0]['publicURL']
-        token = body['auth']['token']['id']
+      if svc = body['access']['serviceCatalog'].detect{|x| x['name'] == @compute_service_name}
+        mgmt_url = svc['endpoints'].detect{|x| x['publicURL']}['publicURL']
+        token = body['access']['token']['id']
         return {
           :token => token,
           :server_management_url => mgmt_url

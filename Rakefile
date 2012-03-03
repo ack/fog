@@ -55,14 +55,8 @@ namespace :test do
   end
 end
 
-task :examples do
-  sh("export FOG_MOCK=false && bundle exec shindont examples")
-  # some don't provide mocks so we'll leave this out for now
-  # sh("export FOG_MOCK=true  && bundle exec shindont examples")
-end
-
-task :test do # => :examples do
-  Rake::Task[:mock_tests].invoke && Rake::Task[:examples].invoke && Rake::Task[:real_tests].invoke
+task :test do
+  Rake::Task[:mock_tests].invoke && Rake::Task[:real_tests].invoke
 end
 
 def tests(mocked)
@@ -72,11 +66,11 @@ def tests(mocked)
   start = Time.now.to_i
   threads = []
   Thread.main[:results] = []
-  Fog.providers.each do |provider|
+  Fog.providers.each do |key, value|
     threads << Thread.new do
       Thread.main[:results] << {
-        :provider => provider,
-        :success  => sh("export FOG_MOCK=#{mocked} && bundle exec shindont +#{provider.downcase}")
+        :provider => value,
+        :success  => sh("export FOG_MOCK=#{mocked} && bundle exec shindont +#{key}")
       }
     end
   end
@@ -119,14 +113,6 @@ task :nuke do
     rescue
     end
   end
-end
-
-desc "Generate RCov test coverage and open in your browser"
-task :coverage do
-  require 'rcov'
-  sh "rm -fr coverage"
-  sh "rcov test/test_*.rb"
-  sh "open coverage/index.html"
 end
 
 require 'rdoc/task'
@@ -203,9 +189,9 @@ task :changelog do
   changelog << ''
 
   require 'multi_json'
-  github_repo_data = MultiJson.decode(Excon.get('http://github.com/api/v2/json/repos/show/geemus/fog').body)
+  github_repo_data = MultiJson.decode(Excon.get('http://github.com/api/v2/json/repos/show/fog/fog').body)
   data = github_repo_data['repository'].reject {|key, value| !['forks', 'open_issues', 'watchers'].include?(key)}
-  github_collaborator_data = MultiJson.decode(Excon.get('http://github.com/api/v2/json/repos/show/geemus/fog/collaborators').body)
+  github_collaborator_data = MultiJson.decode(Excon.get('http://github.com/api/v2/json/repos/show/fog/fog/collaborators').body)
   data['collaborators'] = github_collaborator_data['collaborators'].length
   rubygems_data = MultiJson.decode(Excon.get('https://rubygems.org/api/v1/gems/fog.json').body)
   data['downloads'] = rubygems_data['downloads']
@@ -249,7 +235,10 @@ task :changelog do
         'Henry Addison',
         'Lincoln Stoll',
         'Luqman Amjad',
+        'Michael Zeng',
         'nightshade427',
+        'Patrick Debois',
+        'Stepan G. Fedorov',
         'Wesley Beary'
       ].include?(committer)
       next

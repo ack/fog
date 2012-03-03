@@ -13,7 +13,7 @@ module Fog
         attribute :objectid,        :aliases => :ObjectID
 
         def body
-          attributes[:body] ||= if last_modified
+          attributes[:body] ||= if objectid
             collection.get(identity).body
           else
             ''
@@ -26,6 +26,14 @@ module Fog
 
         def directory
           @directory
+        end
+
+        def copy(target_directory_key, target_file_key, options={})
+          target_directory = connection.directories.new(:key => target_directory_key)
+          target_directory.files.create(
+            :key => target_file_key,
+            :body => body
+          )
         end
 
         def destroy
@@ -73,13 +81,15 @@ module Fog
           options[:headers] ||= {}
           options[:headers]['Content-Type'] = content_type if content_type
           options[:body] = body
-          if objectid
-            # pre-existing file, do a PUT
-            data = connection.put_namespace(ns, options)
-          else
-            # new file, POST
+          begin
             data = connection.post_namespace(ns, options)
             self.objectid = data.headers['location'].split('/')[-1]
+          rescue => error
+            if error.message =~ /The resource you are trying to create already exists./
+              data = connection.put_namespace(ns, options)
+            else
+              raise error
+            end
           end
           # merge_attributes(data.headers)
           true

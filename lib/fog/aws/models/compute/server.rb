@@ -17,7 +17,6 @@ module Fog
         attribute :client_token,          :aliases => 'clientToken'
         attribute :dns_name,              :aliases => 'dnsName'
         attribute :groups
-        attribute :group_ids
         attribute :flavor_id,             :aliases => 'instanceType'
         attribute :image_id,              :aliases => 'imageId'
         attr_accessor :instance_initiated_shutdown_behavior
@@ -35,18 +34,20 @@ module Fog
         attribute :reason
         attribute :root_device_name,      :aliases => 'rootDeviceName'
         attribute :root_device_type,      :aliases => 'rootDeviceType'
+        attribute :security_group_ids,    :aliases => 'securityGroupIds'
         attribute :state,                 :aliases => 'instanceState', :squash => 'name'
         attribute :state_reason,          :aliases => 'stateReason'
         attribute :subnet_id,             :aliases => 'subnetId'
         attribute :tenancy
         attribute :tags,                  :aliases => 'tagSet'
         attribute :user_data
+        attribute :vpc_id,                :aliases => 'vpcId'
 
         attr_accessor :password
         attr_writer   :private_key, :private_key_path, :public_key, :public_key_path, :username
 
         def initialize(attributes={})
-          self.groups     ||= ["default"] unless attributes[:subnet_id]
+          self.groups     ||= ["default"] unless (attributes[:subnet_id] || attributes[:security_group_ids])
           self.flavor_id  ||= 't1.micro'
           self.image_id   ||= begin
             self.username = 'ubuntu'
@@ -153,7 +154,7 @@ module Fog
             'Placement.Tenancy'           => tenancy,
             'RamdiskId'                   => ramdisk_id,
             'SecurityGroup'               => groups,
-            'SecurityGroupId'             => group_ids,
+            'SecurityGroupId'             => security_group_ids,
             'SubnetId'                    => subnet_id,
             'UserData'                    => user_data
           }

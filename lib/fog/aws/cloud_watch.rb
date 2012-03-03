@@ -13,12 +13,26 @@ module Fog
       request :list_metrics
       request :get_metric_statistics
       request :put_metric_data
+      request :describe_alarms
+      request :put_metric_alarm
+      request :delete_alarms
+      request :describe_alarm_history
+      request :enable_alarm_actions
+      request :disable_alarm_actions
+      request :describe_alarms_for_metric
+      request :set_alarm_state
 
       model_path 'fog/aws/models/cloud_watch'
       model       :metric
       collection  :metrics
       model       :metric_statistic
       collection  :metric_statistics
+      model       :alarm_datum
+      collection  :alarm_data
+      model       :alarm_history
+      collection  :alarm_histories
+      model       :alarm
+      collection  :alarms
 
       class Mock
 
@@ -43,7 +57,7 @@ module Fog
         #
         # ==== Parameters
         # * options<~Hash> - config arguments for connection.  Defaults to {}.
-        #   * region<~String> - optional region to use, in ['eu-west-1', 'us-east-1', 'us-west-1', 'ap-southeast-1', 'ap-northeast-1']
+        #   * region<~String> - optional region to use. For instance, 'eu-west-1', 'us-east-1', etc.
         #
         # ==== Returns
         # * CloudWatch object with connection to AWS.
@@ -54,20 +68,7 @@ module Fog
 
           @connection_options = options[:connection_options] || {}
           options[:region] ||= 'us-east-1'
-          @host = options[:host] || case options[:region]
-          when 'ap-northeast-1'
-            'monitoring.ap-northeast-1.amazonaws.com'
-          when 'ap-southeast-1'
-            'monitoring.ap-southeast-1.amazonaws.com'
-          when 'eu-west-1'
-            'monitoring.eu-west-1.amazonaws.com'
-          when 'us-east-1'
-            'monitoring.us-east-1.amazonaws.com'
-          when 'us-west-1'
-            'monitoring.us-west-1.amazonaws.com'
-          else
-            raise ArgumentError, "Unknown region: #{options[:region].inspect}"
-          end
+          @host = options[:host] || "monitoring.#{options[:region]}.amazonaws.com"
           @path       = options[:path]        || '/'
           @persistent = options[:persistent]  || false
           @port       = options[:port]        || 443

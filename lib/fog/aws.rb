@@ -10,15 +10,18 @@ module Fog
     service(:compute,         'aws/compute',          'Compute')
     service(:cloud_formation, 'aws/cloud_formation',  'CloudFormation')
     service(:cloud_watch,     'aws/cloud_watch',      'CloudWatch')
+    service(:dynamodb,        'aws/dynamodb',         'DynamoDB')
     service(:dns,             'aws/dns',              'DNS')
     service(:elasticache,     'aws/elasticache',      'Elasticache')
     service(:elb,             'aws/elb',              'ELB')
+    service(:emr,             'aws/emr',              'EMR')
     service(:iam,             'aws/iam',              'IAM')
     service(:rds,             'aws/rds',              'RDS')
     service(:ses,             'aws/ses',              'SES')
     service(:simpledb,        'aws/simpledb',         'SimpleDB')
     service(:sns,             'aws/sns',              'SNS')
     service(:sqs,             'aws/sqs',              'SQS')
+    service(:sts,             'aws/sts',              'STS')
     service(:storage,         'aws/storage',          'Storage')
 
     def self.indexed_param(key, values)
@@ -27,9 +30,33 @@ module Fog
         key << '.%d'
       end
       [*values].each_with_index do |value, index|
-        params[format(key, index + 1)] = value
+        if value.respond_to?('keys')
+          k = format(key, index + 1)
+          value.each do | vkey, vvalue |
+            params["#{k}.#{vkey}"] = vvalue
+          end
+        else
+          params[format(key, index + 1)] = value
+        end
       end
       params
+    end
+
+    def self.serialize_keys(key, value, options = {})
+      case value
+      when Hash
+        value.each do | k, v |
+          options.merge!(serialize_keys("#{key}.#{k}", v))
+        end
+        return options
+      when Array
+        value.each_with_index do | it, idx |
+          options.merge!(serialize_keys("#{key}.member.#{(idx + 1)}", it))
+        end
+        return options
+      else
+        return {key => value}
+      end
     end
 
     def self.indexed_filters(filters)
@@ -59,6 +86,10 @@ module Fog
         'Timestamp'         => Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         'Version'           => options[:version]
       })
+
+      params.merge!({
+        'SecurityToken'     => options[:aws_session_token]
+      }) if options[:aws_session_token]
 
       body = ''
       for key in params.keys.sort
@@ -98,10 +129,6 @@ module Fog
 
       def self.private_dns_name_for(ip_address)
         "ip-#{ip_address.gsub('.','-')}.ec2.internal"
-      end
-
-      def self.etag
-        Fog::Mock.random_hex(32)
       end
 
       def self.image
@@ -192,6 +219,15 @@ module Fog
 
       def self.volume_id
         "vol-#{Fog::Mock.random_hex(8)}"
+      end
+
+      def self.key_id(length=21)
+        #Probably close enough
+        Fog::Mock.random_selection('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',length)
+      end
+
+      def self.rds_address(db_name,region)
+        "#{db_name}.#{Fog::Mock.random_letters(rand(12) + 4)}.#{region}.rds.amazonaws.com"
       end
     end
   end

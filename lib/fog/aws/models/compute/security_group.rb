@@ -7,13 +7,11 @@ module Fog
       class SecurityGroup < Fog::Model
 
         identity  :name,            :aliases => 'groupName'
-
-        ## identity should really be this one
-        attribute :id,              :aliases => 'groupId'
-
         attribute :description,     :aliases => 'groupDescription'
+        attribute :group_id,        :aliases => 'groupId'
         attribute :ip_permissions,  :aliases => 'ipPermissions'
         attribute :owner_id,        :aliases => 'ownerId'
+        attribute :vpc_id,          :aliases => 'vpcId'
 
         # Authorize access by another security group
         #
@@ -196,8 +194,7 @@ module Fog
 
         def save
           requires :description, :name
-
-          data = connection.create_security_group(name, description).body
+          data = connection.create_security_group(name, description, vpc_id).body
           true
         end
 

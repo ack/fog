@@ -33,7 +33,20 @@ module Fog
         attribute :is_a_template
         attribute :connection_state
         attribute :mo_ref
+        attribute :path
 
+        def vm_reconfig_memory(options = {})
+          requires :instance_uuid, :memory
+          connection.vm_reconfig_memory('instance_uuid' => instance_uuid, 'memory' => memory)
+        end
+        def vm_reconfig_cpus(options = {})
+          requires :instance_uuid, :cpus
+          connection.vm_reconfig_cpus('instance_uuid' => instance_uuid, 'cpus' => cpus)
+        end
+        def vm_reconfig_hardware(options = {})
+          requires :instance_uuid, :hardware_spec
+          connection.vm_reconfig_hardware('instance_uuid' => instance_uuid, 'hardware_spec' => hardware_spec)
+        end
         def start(options = {})
           requires :instance_uuid
           connection.vm_power_on('instance_uuid' => instance_uuid)
@@ -54,6 +67,30 @@ module Fog
         def destroy(options = {})
           requires :instance_uuid
           connection.vm_destroy('instance_uuid' => instance_uuid)
+        end
+        def create(options ={})
+          requires :name, :path
+          new_vm = self.class.new(create_results['vm_attributes'])
+          new_vm.collection = self.collection
+          new_vm.connection = self.connection
+          new_vm
+        end
+        def clone(options = {})
+          requires :name, :path
+          # Convert symbols to strings
+          req_options = options.inject({}) { |hsh, (k,v)| hsh[k.to_s] = v; hsh }
+          # Give our path to the request
+          req_options['path'] ="#{path}/#{name}"
+          # Perform the actual clone
+          clone_results = connection.vm_clone(req_options)
+          # Create the new VM model.
+          new_vm = self.class.new(clone_results['vm_attributes'])
+          # We need to assign the collection and the connection otherwise we
+          # cannot reload the model.
+          new_vm.collection = self.collection
+          new_vm.connection = self.connection
+          # Return the new VM model.
+          new_vm
         end
 
       end

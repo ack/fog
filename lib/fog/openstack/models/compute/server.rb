@@ -20,6 +20,8 @@ module Fog
         attribute :progress
         attribute :accessIPv4
         attribute :accessIPv6
+        attribute :availability_zone
+        attribute :user_data_encoded
         attribute :state,       :aliases => 'status'
 
         attr_reader :password
@@ -27,6 +29,7 @@ module Fog
 
         def initialize(attributes={})
           @connection = attributes[:connection]
+          attributes[:metadata] = {}
           super
         end
 
@@ -43,6 +46,10 @@ module Fog
           metas = []
           new_metadata.each_pair {|k,v| metas << {"key" => k, "value" => v} }
           metadata.load(metas)
+        end
+
+        def user_data=(ascii_userdata)
+          self.user_data_encoded = [ascii_userdata].pack('m')
         end
 
         def destroy
@@ -108,9 +115,9 @@ module Fog
           true
         end
 
-        def rebuild
+        def rebuild(image_ref, name, admin_pass=nil, metadata=nil, personality=nil)
           requires :id
-          connection.rebuild_server(id, name, metadata, personality)
+          connection.rebuild_server(id, image_ref, name, admin_pass, metadata, personality)
           true
         end
 
@@ -141,7 +148,6 @@ module Fog
         def create_image(name, metadata={})
           requires :id
           connection.create_image(id, name, metadata)
-          true
         end
 
         def save
@@ -153,7 +159,9 @@ module Fog
             'metadata'    => meta_hash,
             'personality' => personality,
             'accessIPv4' => accessIPv4,
-            'accessIPv6' => accessIPv6
+            'accessIPv6' => accessIPv6,
+            'availability_zone' => availability_zone,
+            'user_data' => user_data_encoded
           }
           options = options.reject {|key, value| value.nil?}
           data = connection.create_server(name, image_ref, flavor_ref, options)

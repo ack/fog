@@ -17,6 +17,12 @@ module Fog
       when :brightbox
         require 'fog/brightbox/compute'
         Fog::Compute::Brightbox.new(attributes)
+      when :cloudstack
+        require 'fog/cloudstack/compute'
+        Fog::Compute::Cloudstack.new(attributes)
+      when :clodo
+        require 'fog/clodo/compute'
+        Fog::Compute::Clodo.new(attributes)
       when :ecloud
         require 'fog/ecloud/compute'
         Fog::Compute::Ecloud.new(attributes)
@@ -26,6 +32,9 @@ module Fog
       when :gogrid
         require 'fog/go_grid/compute'
         Fog::Compute::GoGrid.new(attributes)
+      when :joyent
+        require 'fog/joyent/compute'
+        Fog::Compute::Joyent.new(attributes)
       when :libvirt
         require 'fog/libvirt/compute'
         Fog::Compute::Libvirt.new(attributes)
@@ -41,6 +50,9 @@ module Fog
       when :openstack
         require 'fog/openstack/compute'
         Fog::Compute::OpenStack.new(attributes)
+      when :ovirt
+        require 'fog/ovirt/compute'
+        Fog::Compute::Ovirt.new(attributes)
       when :rackspace
         require 'fog/rackspace/compute'
         Fog::Compute::Rackspace.new(attributes)
