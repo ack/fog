@@ -3,12 +3,14 @@
 *.rbc
 *.sw?
 .rvmrc
+.irbrc
 .bundle
 .DS_Store
 .idea
 bin/*
 !bin/fog
 !bin/rdoc
+.fog
 coverage
 doc/*
 docs/_site/*
